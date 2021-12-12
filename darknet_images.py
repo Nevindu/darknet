@@ -98,6 +98,30 @@ def prepare_batch(images, network, channels=3):
     return darknet.IMAGE(width, height, channels, darknet_images)
 
 
+def convert2relative(bbox, network_width, network_height):
+    """
+    YOLO format use relative coordinates for annotation
+    """
+    x, y, w, h  = bbox
+    _height     =  network_height
+    _width      =  network_width
+    return x/_width, y/_height, w/_width, h/_height
+
+
+def convert2original(image, bbox, network_width, network_height):
+    x, y, w, h = convert2relative(bbox, network_width, network_height)
+
+    image_h, image_w, __ = image.shape
+
+    orig_x       = int(x * image_w)
+    orig_y       = int(y * image_h)
+    orig_width   = int(w * image_w)
+    orig_height  = int(h * image_h)
+
+    bbox_converted = (orig_x, orig_y, orig_width, orig_height)
+
+    return bbox_converted
+
 def image_detection(image_path, network, class_names, class_colors, thresh):
     # Darknet doesn't accept numpy images.
     # Create one with image we reuse for each detect
@@ -112,8 +136,12 @@ def image_detection(image_path, network, class_names, class_colors, thresh):
 
     darknet.copy_image_from_bytes(darknet_image, image_resized.tobytes())
     detections = darknet.detect_image(network, class_names, darknet_image, thresh=thresh)
+    detections_adjusted = []
+    for label, confidence, bbox in detections:
+      bbox_adjusted = convert2original(image_rgb, bbox, width, height)
+      detections_adjusted.append((str(label), confidence, bbox_adjusted))
     darknet.free_image(darknet_image)
-    image = darknet.draw_boxes(detections, image_resized, class_colors)
+    image = darknet.draw_boxes(detections_adjusted, image_rgb, class_colors)
     return cv2.cvtColor(image, cv2.COLOR_BGR2RGB), detections
 
 
@@ -149,7 +177,7 @@ def image_classification(image, network, class_names):
     darknet.free_image(darknet_image)
     return sorted(predictions, key=lambda x: -x[1])
 
-
+'''
 def convert2relative(image, bbox):
     """
     YOLO format use relative coordinates for annotation
@@ -157,7 +185,7 @@ def convert2relative(image, bbox):
     x, y, w, h = bbox
     height, width, _ = image.shape
     return x/width, y/height, w/width, h/height
-
+'''
 
 def save_annotations(name, image, detections, class_names):
     """
