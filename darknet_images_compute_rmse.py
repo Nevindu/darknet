@@ -7,7 +7,7 @@ import time
 import cv2
 import numpy as np
 import darknet
-import pandas
+import pandas as pd
 
 
 def parser():
@@ -196,6 +196,9 @@ def main():
     args = parser()
     check_arguments_errors(args)
 
+    detections_table = pd.read_csv('test_data_stats.csv', index_col=0)
+    print(detections_table)
+
     random.seed(3)  # deterministic bbox colors
     network, class_names, class_colors = darknet.load_network(
         args.config_file,
@@ -207,34 +210,42 @@ def main():
     #print("DONE LOADING NETWORK")
     images = load_images(args.input)
     #print("DONE LOADING IMAGES")
-    index = 0
-    image_detections = {}
-    while True:
-        #print("INSIDE LOOP")
-        # loop asking for new image paths if no list is given
-        if args.input:
-            #print("OK")
-            if index >= len(images):
-                #print("BREAKING")
-                break
-            image_name = images[index]
-        else:
-            image_name = input("Enter Image Path: ")
-        #print("PASS")
-        prev_time = time.time()
-        image, detections = image_detection(
-            image_name, network, class_names, class_colors, args.thresh
-            )
-        if args.save_labels:
-            save_annotations(image_name, image, detections, class_names)
-        darknet.print_detections(detections, args.ext_output)
-        fps = int(1/(time.time() - prev_time))
-        print("FPS: {}".format(fps))
-        image_detections[os.path.basename(image_name).strip()] = len(detections)
-        print(image_detections)
-        break
-        index += 1
-
+    thresh_vals = np.arange(0.2, 1, 0.05)
+    for thresh in thresh_vals:
+      thresh = np.around(thresh, 2)
+      print(f"Running detections for thresh = {thresh}")
+      det_col_name = f"Num. Detections @{thresh}"
+      index = 0
+      image_detections = {}
+      while True:
+          #print("INSIDE LOOP")
+          # loop asking for new image paths if no list is given
+          if args.input:
+              #print("OK")
+              if index >= len(images):
+                  #print("BREAKING")
+                  break
+              image_name = images[index]
+          else:
+              image_name = input("Enter Image Path: ")
+          #print("PASS")
+          #prev_time = time.time()
+          image, detections = image_detection(
+              image_name, network, class_names, class_colors, thresh
+              )
+          #if args.save_labels:
+          #    save_annotations(image_name, image, detections, class_names)
+          #darknet.print_detections(detections, args.ext_output)
+          #fps = int(1/(time.time() - prev_time))
+          #print("FPS: {}".format(fps))
+          image_detections[os.path.basename(image_name).strip()] = len(detections)
+          index += 1
+          #break
+      image_detections_df = pd.DataFrame({'Test Image': list(image_detections.keys()), det_col_name : list(image_detections.values())})
+      image_detections_df = image_detections_df.set_index('Test Image')
+      detections_table = detections_table.merge(image_detections_df, how='left', left_on = 'Test Image', right_on = 'Test Image')
+    detections_table.to_csv('test_data_detection_stats.csv', index=False)
+    
 
 if __name__ == "__main__":
     # unconmment next line for an example of batch processing
