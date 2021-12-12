@@ -66,7 +66,8 @@ def load_images(images_path):
     In other case, it's a folder, return a list with names of each
     jpg, jpeg and png file
     """
-    input_path_extension = images_path.split('.')[-1]
+    input_path_extension = images_path.split('.')[-1].lower()
+    print(images_path)
     if input_path_extension in ['jpg', 'jpeg', 'png']:
         return [images_path]
     elif input_path_extension == "txt":
@@ -202,17 +203,22 @@ def main():
         batch_size=args.batch_size
     )
 
+    #print("DONE LOADING NETWORK")
     images = load_images(args.input)
-
+    #print("DONE LOADING IMAGES")
     index = 0
     while True:
+        #print("INSIDE LOOP")
         # loop asking for new image paths if no list is given
         if args.input:
+            #print("OK")
             if index >= len(images):
+                #print("BREAKING")
                 break
             image_name = images[index]
         else:
             image_name = input("Enter Image Path: ")
+        #print("PASS")
         prev_time = time.time()
         image, detections = image_detection(
             image_name, network, class_names, class_colors, args.thresh
@@ -222,6 +228,7 @@ def main():
         darknet.print_detections(detections, args.ext_output)
         fps = int(1/(time.time() - prev_time))
         print("FPS: {}".format(fps))
+        cv2.imwrite("detections.jpg", image)
         if not args.dont_show:
             cv2.imshow('Inference', image)
             if cv2.waitKey() & 0xFF == ord('q'):
