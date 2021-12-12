@@ -203,7 +203,6 @@ def main():
         batch_size=args.batch_size
     )
 
-    #print("DONE LOADING NETWORK")
     images = load_images(args.input)
     #print("DONE LOADING IMAGES")
     index = 0
