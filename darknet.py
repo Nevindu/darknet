@@ -120,12 +120,13 @@ def draw_boxes(detections, image, colors):
     import cv2
     for label, confidence, bbox in detections:
         left, top, right, bottom = bbox2points(bbox)
-        cv2.rectangle(image, (left, top), (right, bottom), colors[label], 1)
+        #Color all boxes red for a cranberry
+        cv2.rectangle(image, (left, top), (right, bottom), (255,0,0), 4)
         #cv2.putText(image, "{} [{:.2f}]".format(label, float(confidence)),
                    # (left, top - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                    # colors[label], 2)
         num_detections = len(detections)
-        cv2.putText(image, f"Cranberry Count :{num_detections}",(0,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2)
+        cv2.putText(image, f"Cranberry Count :{num_detections}",(0,150), cv2.FONT_HERSHEY_SIMPLEX, 3, (255,0,255), 6)
     return image
 
 
