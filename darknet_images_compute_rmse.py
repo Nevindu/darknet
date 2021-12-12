@@ -7,11 +7,12 @@ import time
 import cv2
 import numpy as np
 import darknet
+import pandas
 
 
 def parser():
     parser = argparse.ArgumentParser(description="YOLO Object Detection")
-    parser.add_argument("--input", type=str, default="",
+    parser.add_argument("--input", type=str, default="data/test.txt",
                         help="image source. It can be a single image, a"
                         "txt with paths to them, or a folder. Image valid"
                         " formats are jpg, jpeg or png."
@@ -30,7 +31,7 @@ def parser():
                         help="path to config file")
     parser.add_argument("--data_file", default="data/obj.data",
                         help="path to data file")
-    parser.add_argument("--thresh", type=float, default=.25,
+    parser.add_argument("--thresh", type=float, default=.2,
                         help="remove detections with lower confidence")
     return parser.parse_args()
 
@@ -207,6 +208,7 @@ def main():
     images = load_images(args.input)
     #print("DONE LOADING IMAGES")
     index = 0
+    image_detections = {}
     while True:
         #print("INSIDE LOOP")
         # loop asking for new image paths if no list is given
@@ -228,11 +230,9 @@ def main():
         darknet.print_detections(detections, args.ext_output)
         fps = int(1/(time.time() - prev_time))
         print("FPS: {}".format(fps))
-        cv2.imwrite("detections.jpg", image)
-        if args.show:
-            cv2.imshow('Inference', image)
-            if cv2.waitKey() & 0xFF == ord('q'):
-                break
+        image_detections[os.path.basename(image_name).strip()] = len(detections)
+        print(image_detections)
+        break
         index += 1
 
 
