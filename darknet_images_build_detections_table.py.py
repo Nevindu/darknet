@@ -239,6 +239,8 @@ def main():
           #fps = int(1/(time.time() - prev_time))
           #print("FPS: {}".format(fps))
           image_detections[os.path.basename(image_name).strip()] = len(detections)
+          if thresh == 0.3:
+            cv2.imwrite(f"data/test_detections/os.path.basename(image_name).strip()", image)
           index += 1
           #break
       image_detections_df = pd.DataFrame({'Test Image': list(image_detections.keys()), det_col_name : list(image_detections.values())})

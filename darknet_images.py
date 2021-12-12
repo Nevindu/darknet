@@ -255,7 +255,7 @@ def main():
         darknet.print_detections(detections, args.ext_output)
         fps = int(1/(time.time() - prev_time))
         print("FPS: {}".format(fps))
-        cv2.imwrite("detections.jpg", image)
+        cv2.imwrite(f"{os.path.basename(image_name)}", image)
         if args.show:
             cv2.imshow('Inference', image)
             if cv2.waitKey() & 0xFF == ord('q'):
