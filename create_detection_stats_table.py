@@ -15,4 +15,4 @@ for label in test_label_paths:
     annotations = lb.readlines()
     num_cranberries.append(len(annotations))
 df = pd.DataFrame(list(zip(test_images, num_cranberries)), columns = ["Test Image", "Num. Cranberries"])
-df.to_csv("detection_stats.csv", index=False)
+df.to_csv("test_data_stats.csv", index=False)
